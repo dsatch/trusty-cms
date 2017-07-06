@@ -26,7 +26,7 @@ a general purpose content managment system--not merely a blogging engine.}
 
   s.add_dependency "tzinfo",          "~> 1.2"
   s.add_dependency "rails",           "~> 4.2"
-  s.add_dependency "protected_attributes", '~> 1.0.9'
+  s.add_dependency "protected_attributes", '~> 1.1.4'
   s.add_dependency "jquery-rails",    "~> 3.1"
   s.add_dependency "rdoc",            "~> 3.9"
   s.add_dependency "acts_as_tree",    "~> 2.1"
