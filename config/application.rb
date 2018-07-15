@@ -12,10 +12,7 @@ require 'trustygems'
 
 
 if defined?(Bundler)
-  # If you precompile assets before deploying to production, use this line
   Bundler.require(*Rails.groups(:assets => %w(development test)))
-  # If you want your assets lazily compiled in production, use this line
-  # Bundler.require(:default, :assets, Rails.env)
 end
 
 module TrustyCms
@@ -47,40 +44,6 @@ module TrustyCms
 
     config.encoding = 'utf-8'
 
-    # Skip frameworks you're not going to use (only works if using vendor/rails).
-    # To use Rails without a database, you must remove the Active Record framework
-    # config.frameworks -= [ :action_mailer ]
-
-    # Only load the extensions named here, in the order given. By default all
-    # extensions in vendor/extensions are loaded, in alphabetical order. :all
-    # can be used as a placeholder for all extensions not explicitly named.
-    # config.extensions = [ :all ]
-
-    # By default, only English translations are loaded. Remove any of these from
-    # the list below if you'd like to provide any of the additional options
-    # config.ignore_extensions []
-
-    # Comment out this line if you want to turn off all caching, or
-    # add options to modify the behavior. In the majority of deployment
-    # scenarios it is desirable to leave TrustyCms's cache enabled and in
-    # the default configuration.
-    #
-    # Additional options:
-    #  :use_x_sendfile => true
-    #    Turns on X-Sendfile support for Apache with mod_xsendfile or lighttpd.
-    #  :use_x_accel_redirect => '/some/virtual/path'
-    #    Turns on X-Accel-Redirect support for nginx. You have to provide
-    #    a path that corresponds to a virtual location in your webserver
-    #    configuration.
-    #  :entitystore => "radiant:tmp/cache/entity"
-    #    Sets the entity store type (preceding the colon) and storage
-    #   location (following the colon, relative to Rails.root).
-    #    We recommend you use radiant: since this will enable manual expiration.
-    #  :metastore => "radiant:tmp/cache/meta"
-    #    Sets the meta store type and storage location.  We recommend you use
-    #    radiant: since this will enable manual expiration and acceleration headers.
-
-
     config.middleware.use Rack::Cache,
                           :private_headers => ['Authorization'],
                           :entitystore => "radiant:tmp/cache/entity",
@@ -92,8 +55,6 @@ module TrustyCms
     # TODO: Workaround from: https://github.com/rtomayko/rack-cache/issues/80
     config.middleware.insert_before(Rack::ConditionalGet, Rack::Cache)
     config.assets.enabled = true
-    config.assets.paths << Rails.root.join('vendor', 'assets', 'bower_components')
-
 
     config.filter_parameters += [:password, :password_confirmation]
 

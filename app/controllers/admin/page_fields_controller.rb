@@ -1,6 +1,6 @@
 class Admin::PageFieldsController < Admin::ResourceController
   def create
-    self.model = PageField.new(page_fields_params)
+    self.model.attributes = page_fields_params
     @controller_name = 'page'
     @template_name = 'edit'
     render :partial => "page_field", :object => model,
@@ -10,7 +10,7 @@ class Admin::PageFieldsController < Admin::ResourceController
   private
 
   def page_fields_params
-    params.permit(:name, :content)
+    params.require(:page_field).permit(:name, :content, :page_id)
   end
 
 end

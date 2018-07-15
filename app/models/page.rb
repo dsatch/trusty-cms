@@ -8,10 +8,10 @@ class Page < ActiveRecord::Base
   before_save :update_virtual, :update_status, :set_allowed_children_cache
 
   # Associations
-  acts_as_tree :order => 'title ASC'
-  has_many :parts, {:class_name => 'PagePart', :dependent => :destroy}, -> {order(:id)}
+  acts_as_tree :order => 'position ASC'
+  has_many :parts, -> {order(:id)}, :class_name => 'PagePart', :dependent => :destroy
   accepts_nested_attributes_for :parts, :allow_destroy => true
-  has_many :fields, {:class_name => 'PageField', :dependent => :destroy}, -> {order(:id)}
+  has_many :fields, -> {order(:id)}, :class_name => 'PageField', :dependent => :destroy
   accepts_nested_attributes_for :fields, :allow_destroy => true
   belongs_to :layout
   belongs_to :created_by, :class_name => 'User'
@@ -28,8 +28,6 @@ class Page < ActiveRecord::Base
   validates_uniqueness_of :slug, :scope => :parent_id
 
   validate :valid_class_name
-
-  default_scope { order('position ASC') }
 
   include TrustyCms::Taggable
   include StandardTags
@@ -282,14 +280,16 @@ class Page < ActiveRecord::Base
           $1.camelize.constantize if page =~ %r{/([^/]+)\.rb}
         end
       end
-      if ActiveRecord::Base.connection.data_sources.include?('pages') && Page.column_names.include?('class_name') # Assume that we have bootstrapped
-        Page.connection.select_values("SELECT DISTINCT class_name FROM pages WHERE class_name <> '' AND class_name IS NOT NULL").each do |p|
-          begin
-            p.constantize
-          rescue NameError, LoadError
-            #Rubocop: The use of eval is a serious security risk.
-            #eval(%Q{class #{p} < Page; acts_as_tree; def self.missing?; true end end}, TOPLEVEL_BINDING)
-            Rails.logger.error NameError
+      if database_exists?
+        if ActiveRecord::Base.connection.data_sources.include?('pages') && Page.column_names.include?('class_name') # Assume that we have bootstrapped
+          Page.connection.select_values("SELECT DISTINCT class_name FROM pages WHERE class_name <> '' AND class_name IS NOT NULL").each do |p|
+            begin
+              p.constantize
+            rescue NameError, LoadError
+              #Rubocop: The use of eval is a serious security risk.
+              #eval(%Q{class #{p} < Page; acts_as_tree; def self.missing?; true end end}, TOPLEVEL_BINDING)
+              Rails.logger.error NameError
+            end
           end
         end
       end
@@ -356,12 +356,20 @@ class Page < ActiveRecord::Base
     end
 
     def clean_path(path)
-      "/#{ path.to_s.strip }/".gsub(%r{//+}, '/')
+      "/#{ path.to_s.strip }".gsub(%r{//+}, '/')
     end
     alias_method :clean_url, :clean_path
 
     def parent?
       !parent.nil?
+    end
+
+    def database_exists?
+      ActiveRecord::Base.connection
+    rescue ActiveRecord::NoDatabaseError
+      false
+    else
+      true
     end
 
     def lazy_initialize_parser_and_context
